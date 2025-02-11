@@ -1,8 +1,9 @@
+import os
+import subprocess
+
+import ffmpeg
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
-import ffmpeg
-import subprocess
-import os
 
 
 # function that process user input url
@@ -40,6 +41,8 @@ def output_directory():
         os.makedirs(output_path)
 
 # clean input files
+
+
 def clean_input(v_stream, a_stream):
     try:
         os.remove(v_stream)
@@ -48,14 +51,19 @@ def clean_input(v_stream, a_stream):
         print(f"Error: {e.filename} {e.strerror}")
 
 # dowload pulled stream and split it into two
+
+
 def process_stream(video_stream, audio_stream, title):
     video_input = ffmpeg.input(video_stream.download(filename="video.mp4"))
     audio_input = ffmpeg.input(audio_stream.download(filename="audio.mp4"))
+    v_input = video_input.node.short_repr
+    a_input = audio_input.node.short_repr
+    input_str = f"-i {v_input} -i {a_input}"
     codec = "copy"
-    output_directory = ".\\outputs\\"
+    out_dir = ".\\outputs\\"
 
     # process inputs using ffmpeg via subprocess
-    command = f'ffmpeg -i {video_input.node.short_repr} -i {audio_input.node.short_repr} -c {codec} -y "{output_directory}{title}.mp4"'
+    command = f'ffmpeg {input_str} -c {codec} -y "{out_dir}{title}.mp4"'
     subprocess.run(command)
     clean_input(video_input.node.short_repr, audio_input.node.short_repr)
 

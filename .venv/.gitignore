@@ -2,7 +2,7 @@
 *
 # own files
 .ignore_scrap_codes.txt
-outputs/
+/outputs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,4 +1,5 @@
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
 import ffmpeg
 import subprocess
 import os
@@ -6,7 +7,7 @@ import os
 
 # function that process user input url
 def pull_stream(yt_url):
-    yt = YouTube(yt_url)
+    yt = YouTube(yt_url, on_progress_callback=on_progress)
     # get highest quality of video and audio
     video_stream = (
         yt.streams.filter(

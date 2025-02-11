@@ -40,9 +40,8 @@ def output_directory():
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
+
 # clean input files
-
-
 def clean_input(v_stream, a_stream):
     try:
         os.remove(v_stream)
@@ -50,9 +49,8 @@ def clean_input(v_stream, a_stream):
     except OSError as e:
         print(f"Error: {e.filename} {e.strerror}")
 
+
 # dowload pulled stream and split it into two
-
-
 def process_stream(video_stream, audio_stream, title):
     video_input = ffmpeg.input(video_stream.download(filename="video.mp4"))
     audio_input = ffmpeg.input(audio_stream.download(filename="audio.mp4"))

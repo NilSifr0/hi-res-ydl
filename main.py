@@ -1,59 +1,67 @@
 from pytubefix import YouTube
 import ffmpeg
 import subprocess
+import os
 
-yt_url = "url"
-yt = YouTube(yt_url)
 
-# get highest quality of video and audio
-video_stream = (
-    yt.streams.filter(
-        adaptive="True",
-        only_video="True",
-        file_extension="mp4",
+# function that process user input url
+def pull_stream(yt_url):
+    yt = YouTube(yt_url)
+    # get highest quality of video and audio
+    video_stream = (
+        yt.streams.filter(
+            adaptive="True",
+            only_video="True",
+            file_extension="mp4",
+        )
+        .order_by("resolution")
+        .desc()
+        .first()
     )
-    .order_by("resolution")
-    .desc()
-    .first()
-)
-
-audio_stream = (
-    yt.streams.filter(
-        adaptive="True",
-        only_audio="True",
-        file_extension="mp4",
+    audio_stream = (
+        yt.streams.filter(
+            adaptive="True",
+            only_audio="True",
+            file_extension="mp4",
+        )
+        .order_by("abr")
+        .desc()
+        .first()
     )
-    .order_by("abr")
-    .desc()
-    .first()
-)
-
-# async def dl_files():
-#     async with asyncio.TaskGroup() as tg:
-#         task_1 = tg.create_task(
-#             ffmpeg.input(video_stream.download(filename="video.mp4"))
-#         )
-#         task_2 = tg.create_task(
-#             ffmpeg.input(audio_stream.download(filename="audio.mp4"))
-#         )
-# asyncio.run(dl_files())
-
-video_input = ffmpeg.input(video_stream.download(filename="video.mp4"))
-audio_input = ffmpeg.input(audio_stream.download(filename="audio.mp4"))
-output_file = f"{yt.title}.mp4"
+    title = yt.title
+    return video_stream, audio_stream, title
 
 
-codec = "copy"
-title = yt.title
-# merge video and audio inputs into output using subprocess
-# https://stackoverflow.com/questions/56973205/how-to-combine-the-video-and-audio-files-in-ffmpeg-python
-# subprocess.run(f"ffmpeg -i {video_input} -i {audio_input} -c {codec} {output_file}")
-# ffmpeg -i video.mp4 -i audio.m4a -c copy testvid.mp4
-# command = "ffmpeg -i ", video_input.node.short_repr, ' -i ', audio_input.node.short_repr, ' -c', codec, ' output1.mp4'
-command = f"ffmpeg -i {video_input.node.short_repr} -i {audio_input.node.short_repr} -c {codec} output1.mp4"
-# subprocess.run(['ffmpeg ', '-i ', video_input, ' -i', audio_input, ' -c', codec, ' output.mp4'])
-subprocess.run(command)
-# rename_command = f"Rename-Item output.mp4 -NewName {title}.mp4"
-# subprocess.run(rename_command)
+# create output directory if it doesnt exist yet
+def output_directory():
+    output_path = r'.\outputs'
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
 
-# ffmpeg.concat(video_input, audio_input, v=1, a=1).output(output_file).run() // expensive solution
+# clean input files
+def clean_input(v_stream, a_stream):
+    try:
+        os.remove(v_stream)
+        os.remove(a_stream)
+    except OSError as e:
+        print(f"Error: {e.filename} {e.strerror}")
+
+# dowload pulled stream and split it into two
+def process_stream(video_stream, audio_stream, title):
+    video_input = ffmpeg.input(video_stream.download(filename="video.mp4"))
+    audio_input = ffmpeg.input(audio_stream.download(filename="audio.mp4"))
+    codec = "copy"
+    output_directory = ".\\outputs\\"
+
+    # process inputs using ffmpeg via subprocess
+    command = f'ffmpeg -i {video_input.node.short_repr} -i {audio_input.node.short_repr} -c {codec} -y "{output_directory}{title}.mp4"'
+    subprocess.run(command)
+    clean_input(video_input.node.short_repr, audio_input.node.short_repr)
+
+
+if __name__ == "__main__":
+    print("insert yt url:")
+    yt_url = input("URL: ")
+    output_directory()
+    video_stream, audio_stream, title = pull_stream(yt_url)
+    process_stream(video_stream, audio_stream, title)

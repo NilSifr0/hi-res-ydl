@@ -1,0 +1,54 @@
+# async def dl_files():
+#     async with asyncio.TaskGroup() as tg:
+#         task_1 = tg.create_task(
+#             ffmpeg.input(video_stream.download(filename="video.mp4"))
+#         )
+#         task_2 = tg.create_task(
+#             ffmpeg.input(audio_stream.download(filename="audio.mp4"))
+#         )
+# asyncio.run(dl_files())
+
+# merge video and audio inputs into output using subprocess
+# https://stackoverflow.com/questions/56973205/how-to-combine-the-video-and-audio-files-in-ffmpeg-python
+# subprocess.run(f"ffmpeg -i {video_input} -i {audio_input} -c {codec} {output_file}")
+# ffmpeg -i video.mp4 -i audio.m4a -c copy testvid.mp4
+# command = "ffmpeg -i ", video_input.node.short_repr, ' -i ', audio_input.node.short_repr, ' -c', codec, ' output1.mp4'
+
+# subprocess.run(['ffmpeg ', '-i ', video_input, ' -i', audio_input, ' -c', codec, ' output.mp4'])
+
+# rename_command = f"Rename-Item output.mp4 -NewName {title}.mp4"
+# subprocess.run(rename_command)
+
+# ffmpeg.concat(video_input, audio_input, v=1, a=1).output(output_file).run() // expensive solution
+
+
+// First, type ">settings" into the Activity Bar and select "Preferences: Open User Settings (JSON)"
+// Then paste in the following code to manually change the color of portions of r-strings misidentified as regexp escapes
+// Color in below example set to bright red to show changes. Change hex codes to desired color to match your theme
+// If there are additional portions of r-strings (or other elements) that you wish to edit manually in this way
+// 1. Type ">Developer: Inspect Editor Tokens and Scopes" int Activity Bar
+// 2. Use cursor to highlight element color you wish to change
+// 3. Copy code above but swap "scope" string for TextMate Scope type, found to the right of "foreground" at the bottom of the popup window.
+// Note: For common scopes such as "constant.character", it is good to stack with a qualifying scope, such as "string.regexp.quoted.single.python" above.
+// Shout out to Jeffrey Hykin for this portion of the process: https://jeffhykin.medium.com/how-to-customize-your-vs-code-text-colors-c0191155f41a
+"editor.tokenColorCustomizations": {
+    "textMateRules": [
+        // change color of various misidentified regexp escapes
+        // Note: This may not be all of them, these are just what appear in my example. See below instructions for identifying more
+        {"scope": [
+            "string.regexp", "string.regexp.quoted.single.python constant.character", "string.regexp.quoted.single.python entity.name.tag"
+            ],
+        "settings": {
+            "foreground": "#cc0000"
+        }
+        },
+        // change color of "r" at beginning of r-string as well, if you are used to that (e.g. PyCharm)
+        {"scope": [
+            "string.regexp.quoted.single.python storage.type"
+            ],
+        "settings": {
+            "foreground": "#cc0000"
+        }
+        }
+    ]
+},

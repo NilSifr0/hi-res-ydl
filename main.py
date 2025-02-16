@@ -1,6 +1,7 @@
 import os
 import subprocess
-from time import sleep
+
+from win_name_val import WindowsNameValidator
 
 import ffmpeg
 import PySimpleGUI as sg
@@ -25,29 +26,31 @@ def pull_stream(yt_url, status):
     status.update("Status: Downloading")
     yt = YouTube(yt_url, on_progress_callback=dl_progress)
     # get highest quality of video and audio
-    # video_stream = (
-    #     yt.streams.filter(
-    #         adaptive="True",
-    #         only_video="True",
-    #         file_extension="mp4",
-    #     )
-    #     .order_by("resolution")
-    #     .desc()
-    #     .first()
-    # )
+    video_stream = (
+        yt.streams.filter(
+            adaptive="True",
+            only_video="True",
+        )
+        .order_by("resolution")
+        .desc()
+        .first()
+    )
+    # there seems to be an issue with link 2, link 1 works just fine
+    # link 2
+    # https://www.youtube.com/watch?v=tO01J-M3g0U
+    # https://www.youtube.com/watch?v=_A0Beo0M-tQ
+    if video_stream.resolution > "2160p":
+        video_stream = yt.streams.filter(
+            adaptive=True,
+            only_video=True,
+            resolution="2160p",
+            fps=60,
+        ).first()
 
-    video_stream = yt.streams.filter(
-        adaptive=True,
-        only_video=True,
-        file_extension="mp4",
-        resolution="2160p",
-        fps=60,
-    ).first()
     audio_stream = (
         yt.streams.filter(
             adaptive="True",
             only_audio="True",
-            file_extension="mp4",
         )
         .order_by("abr")
         .desc()
@@ -55,11 +58,13 @@ def pull_stream(yt_url, status):
     )
     video_input = video_stream.download()
     audio_input = audio_stream.download()
-    title = yt.title
+
+    validator = WindowsNameValidator(yt.title)
+    cleaned_title = validator.clean_title()
 
     status.update("Status: Compiling")
 
-    return video_input, audio_input, title
+    return video_input, audio_input, cleaned_title
 
 
 def output_directory():
@@ -76,8 +81,7 @@ def clean_input(v_stream, a_stream):
         print(f"Error: {e.filename} {e.strerror}")
 
 
-def process_stream(video_input, audio_input, title, status):
-    sleep(10)
+def process_stream(video_input, audio_input, cleaned_title):
     v_input = ffmpeg.input(video_input).node.short_repr
     a_input = ffmpeg.input(audio_input).node.short_repr
     input_str = f'-i "{v_input}" -i "{a_input}"'
@@ -85,7 +89,8 @@ def process_stream(video_input, audio_input, title, status):
     out_dir = ".\\outputs\\"
 
     # process inputs using ffmpeg via subprocess
-    command = f'ffmpeg {input_str} -c {codec} -y "{out_dir}{title}.mp4"'
+    # // validate the title
+    command = f'ffmpeg {input_str} -c {codec} -y "{out_dir}{cleaned_title}.mp4"'
     subprocess.run(command)
     clean_input(v_input, a_input)
 
@@ -123,12 +128,12 @@ def app_interface():
             break
         elif event == "-GET-":
             output_directory()
-            video_input, audio_input, title = pull_stream(
+            video_input, audio_input, cleaned_title = pull_stream(
                 values["-URL-"],
                 status,
             )
 
-            process_stream(video_input, audio_input, title, status)
+            process_stream(video_input, audio_input, cleaned_title)
             window["-STATUS-"].update("Status: Done")
         else:
             pass

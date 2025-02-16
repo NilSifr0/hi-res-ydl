@@ -1,1 +1,5 @@
+ffmpeg_python==0.2.0
+PySimpleGUI==5.0.8
+PySimpleGUI==5.0.8
 pytubefix==8.12.1
+regex==2024.11.6
